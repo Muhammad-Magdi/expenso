@@ -1,7 +1,7 @@
 const winston = require('winston');
 require('winston-mongodb');
 
-module.exports = function(){
+module.exports = function() {
   const logger = winston.createLogger({
     transports: [
       new winston.transports.File({
