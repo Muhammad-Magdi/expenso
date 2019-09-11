@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Joi = require('joi');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -18,24 +19,17 @@ const userSchema = new mongoose.Schema({
     max: 1024,
     required: true,
   },
-  tokens: [String],
 });
 
-userSchema.pre('save', async (next) => {
+userSchema.pre('save', async function(next) {
   const user = this;
   if (user.isModified('password')) {
+    console.log(user.password);
     const salt = await bcrypt.genSalt(8);
     user.password = await bcrypt.hash(user.password, salt);
   }
   next();
 });
-
-userSchema.methods.findByCredentials = async function(email, password) {
-  const user = await User.findOne({email});
-  if(!user || !bcrypt.compare(password, user.password))
-    throw new Error('Invalid Email and/or Password!');
-  return user;
-};
 
 userSchema.methods.toJSON = function() {
   const user = this;
@@ -45,16 +39,37 @@ userSchema.methods.toJSON = function() {
   return userObject;
 };
 
-userSchema.methods.genAuthToken = async function() {
+userSchema.methods.genAuthToken = function() {
   const user = this;
-  const token = jwt.sign({_id: user._id.toString()}, process.env.JWTSECRET);
-  const salt = await bcrypt.genSalt(8);
-  const hashedToken = await bcrypt.hash(token, salt);
-  user.token.push(hashedToken);
-  await user.save();
+  const token = jwt.sign({_id: user._id.toString()}, process.env.JWT_SECRET);
   return token;
 };
 
-const User = mongoose.model(userSchema);
+const joiValidationSchema = {
+  email: Joi.string().required().email().max(256),
+  password: Joi.string().required().min(8).max(256),
+};
+
+userSchema.statics.findByCredentials = async function(email, password) {
+  try {
+    let user = await User.findOne({email});
+    if (!user || !await bcrypt.compare(password, user.password)) {
+      user = null;
+    }
+    return user;
+  } catch (e) {
+    throw new Error(e);
+  }
+};
+
+userSchema.statics.validate = function(user) {
+  return Joi.validate(user, joiValidationSchema);
+};
+
+userSchema.statics.updatableFields = [
+  'password',
+];
+
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
