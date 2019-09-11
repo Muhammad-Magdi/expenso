@@ -73,14 +73,12 @@ class UserController {
    */
   static async update(req, res, next) {
     const updates = Object.keys(req.body);
-    updates.forEach((update) => {
-      if (!User.updatableFields.includes(update)) {
-        return res.status(status.BAD_REQUEST)
-            .send('These Fields are not updatable!');
-      }
-      req.user[update] = req.body[update];
-    });
+    if (!updates.every((update) => User.updatableFields.includes(update))) {
+      return res.status(status.BAD_REQUEST)
+          .send('These Fields are not updatable!');
+    }
     try {
+      updates.forEach((update) => req.user[update] = req.body[update]);
       await req.user.save();
       return res.status(status.OK).json(req.user);
     } catch (e) {
