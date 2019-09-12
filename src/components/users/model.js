@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Joi = require('joi');
-const Expense = require('./expense');
+const Expense = require('../expenses/model');
 
 const userSchema = new mongoose.Schema({
   email: {

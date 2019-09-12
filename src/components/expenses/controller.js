@@ -1,4 +1,4 @@
-const Expense = require('../models/expense');
+const Expense = require('./model');
 const status = require('http-status');
 const Joi = require('joi');
 

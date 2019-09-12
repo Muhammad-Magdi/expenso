@@ -1,7 +1,7 @@
 const express = require('express');
 require('./inits/mongoose.js')();
-const user = require('./routes/user');
-const expense = require('./routes/expense');
+const user = require('./components/users/router');
+const expense = require('./components/expenses/router');
 
 const app = express();
 
