@@ -17,12 +17,6 @@ router.post('/', auth, ExpenseController.create);
 router.get('/', auth, ExpenseController.getAll);
 
 /**
- * Read Expense by Searching Query
- * GET /api/users/me/expenses/
- */
-router.get('/', auth, ExpenseController.search);
-
-/**
  * Read Expense by ID
  * GET /api/users/me/expenses/:expenseId
  */

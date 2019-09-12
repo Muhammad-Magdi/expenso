@@ -1,5 +1,6 @@
 const Expense = require('../models/expense');
 const status = require('http-status');
+const Joi = require('joi');
 
 /** */
 class ExpenseController {
@@ -32,22 +33,32 @@ class ExpenseController {
    * @param {Function} next - next
    */
   static async getAll(req, res, next) {
+    const minDate = new Date(-8640000000000000);
+    const maxDate = new Date(8639999999999999);
+    const match = {
+      baseDate: {$gte: minDate, $lte: maxDate},
+    };
+    if (req.query.from) {
+      const {error} = Joi.date().validate(req.query.from);
+      if (error) {
+        return res.status(status.BAD_REQUEST).send(error.message);
+      }
+      match.baseDate.$gte = new Date(req.query.from);
+    }
+    if (req.query.to) {
+      const {error} = Joi.date().validate(req.query.to);
+      if (error) {
+        return res.status(status.BAD_REQUEST).send(error.message);
+      }
+      match.baseDate.$lte = new Date(req.query.to);
+    }
+
     try {
-      const expenses = await Expense.find({owner: req.user._id});
+      const expenses = await Expense.find({owner: req.user._id, ...match});
       return res.status(status.OK).json(expenses);
     } catch (e) {
       return res.status(status.INTERNAL_SERVER_ERROR).send(e.message);
     }
-  }
-
-  /**
-   * @static
-   * @param {Object} req - request
-   * @param {Object} res - response
-   * @param {Function} next - next
-   */
-  static async search(req, res, next) {
-
   }
 
   /**
