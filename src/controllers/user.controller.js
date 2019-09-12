@@ -94,7 +94,7 @@ class UserController {
    */
   static async delete(req, res, next) {
     try {
-      await User.deleteOne({_id: req.user._id});
+      await req.user.remove();
       return res.status(status.NO_CONTENT).send();
     } catch (e) {
       return res.status(status.INTERNAL_SERVER_ERROR).send(e.message);
